@@ -188,6 +188,21 @@ button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible
 .lesson-kicker { margin: 5px 0 12px; color: #747b72; font-size: 13px; font-weight: 700; }
 .lesson-progress { height: 5px; margin: 0 0 15px; border-radius: 2px; background: #d7cdb8; overflow: hidden; }
 .lesson-progress span { display: block; height: 100%; background: #d66843; transition: width 200ms ease; }
+.lesson-terms { margin: 0 0 15px; padding: 12px; border: 1px solid #c9b890; background: #efe4ca; }
+.lesson-terms .section-heading { margin-bottom: 8px; }
+.lesson-terms .section-heading h3 { margin: 0; color: #625841; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.lesson-terms .section-heading button { padding: 0; border: 0; color: #406c72; background: transparent; font-size: 9px; font-weight: 800; text-decoration: underline; cursor: pointer; }
+#lesson-terms { display: grid; gap: 6px; }
+.term-card { padding: 12px; border: 1px solid #d0c3aa; background: #fffaf0; }
+.term-card > div { display: flex; align-items: baseline; gap: 8px; }
+.term-card abbr { flex: 0 0 auto; padding: 3px 5px; border: 0; border-radius: 3px; color: #fff; background: #3f6469; font: 10px "DM Mono", monospace; text-decoration: none; }
+.term-card strong { font-size: 12px; line-height: 1.35; }
+.term-card p { margin: 7px 0 0; color: #606a65; font-size: 11px; line-height: 1.5; }
+.term-card.is-compact { padding: 8px 9px; }
+.term-card.is-compact p { margin-top: 4px; font-size: 10px; }
+.more-terms { border: 1px dashed #b8a780; background: rgba(255, 250, 240, 0.55); }
+.more-terms summary { padding: 9px; color: #40656a; font-size: 10px; font-weight: 800; cursor: pointer; }
+.more-terms > div { display: grid; gap: 6px; padding: 0 6px 6px; }
 .lesson-summary { margin: 0 0 13px; padding: 12px; border-left: 4px solid #1d8f86; background: #fffaf0; font-size: 14px; font-weight: 800; line-height: 1.45; }
 .lesson-body { margin: 0; color: #59645f; font-size: 13px; line-height: 1.65; }
 
@@ -209,7 +224,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible
 
 .source-list #lesson-sources { display: grid; gap: 5px; }
 .source-list a { color: #41656b; font-size: 10px; font-weight: 700; text-decoration: none; }
-.source-list a span { margin-right: 6px; padding: 2px 4px; border-radius: 2px; color: #5f5b4f; background: #dfd4bd; font: 8px "DM Mono", monospace; }
+.source-list a span { display: inline-block; margin-right: 6px; padding: 2px 4px; border-radius: 2px; color: #5f5b4f; background: #dfd4bd; font: 8px "DM Mono", monospace; }
 .source-list a:hover { text-decoration: underline; }
 .section-heading { display: flex; align-items: baseline; justify-content: space-between; }
 .section-heading span { color: #8c8b7f; font-size: 9px; }
@@ -271,6 +286,11 @@ dialog::backdrop { background: rgba(34, 42, 42, 0.58); backdrop-filter: blur(4px
 .all-sources a:hover { border-color: #558187; }
 .all-sources span { padding: 2px 4px; color: #74694f; background: #eadbbd; font: 8px "DM Mono", monospace; }
 .legal-note { margin: 18px 0 0; padding-top: 12px; border-top: 1px solid #cfc3ad; color: #77786f; font-size: 10px; line-height: 1.5; }
+.glossary-search { display: grid; gap: 6px; margin: 18px 0; }
+.glossary-search span { color: #6f7169; font: 9px "DM Mono", monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+.glossary-search input { width: 100%; height: 42px; padding: 0 12px; border: 1px solid #a89b81; border-radius: 5px; color: #28383c; background: #fffaf0; font-size: 13px; }
+.glossary-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.glossary-empty { padding: 20px; border: 1px dashed #b6a88e; color: #72756e; text-align: center; }
 
 .tour-dialog {
   width: min(520px, calc(100vw - 30px));
@@ -337,13 +357,15 @@ dialog::backdrop { background: rgba(34, 42, 42, 0.58); backdrop-filter: blur(4px
   .speed-control { grid-column: 2; grid-row: 2; }
   .toggles { display: none; }
   .myth-list, .all-sources { grid-template-columns: 1fr; }
+  .glossary-list { grid-template-columns: 1fr; }
   .tour-actions { flex-direction: column-reverse; }
   .tour-actions .button { width: 100%; }
 }
 
 @media (max-width: 430px) {
-  .top-actions #accuracy-button { font-size: 0; width: 38px; padding: 0; }
+  .top-actions #accuracy-button, .top-actions #glossary-button { font-size: 0; width: 36px; padding: 0; }
   .top-actions #accuracy-button::after { content: "ⓘ"; font-size: 16px; }
+  .top-actions #glossary-button::after { content: "A–Z"; font-size: 10px; }
   .risk-grid { grid-template-columns: 1fr; }
   .lesson-panel { height: 70dvh; }
   .map-label { font-size: 0; padding: 3px; }

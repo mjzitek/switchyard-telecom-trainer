@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { LAYERS, ROUTES, SOURCES, STATIONS } from "../src/curriculum.js";
+import { LAYERS, ROUTES, SOURCES, STATIONS, TERMS } from "../src/curriculum.js";
 
 test("curriculum has a unique, sequential 18-station route", () => {
   assert.equal(STATIONS.length, 18);
@@ -14,8 +14,18 @@ test("every station is complete and uses registered layers and sources", () => {
       assert.ok(station[field]?.trim(), `${station.id} is missing ${field}`);
     }
     assert.ok(LAYERS[station.layer], `${station.id} uses an unknown layer`);
+    assert.ok(station.terms.length > 0, `${station.id} introduces no vocabulary`);
+    station.terms.forEach((term) => assert.ok(TERMS[term], `${station.id} uses undefined term ${term}`));
     assert.ok(station.sources.length > 0, `${station.id} has no primary source`);
     station.sources.forEach((source) => assert.ok(sourceIds.has(source), `${station.id} uses unknown source ${source}`));
+  }
+});
+
+test("every glossary entry gives an expansion and plain-language meaning", () => {
+  assert.ok(Object.keys(TERMS).length >= 40);
+  for (const [termId, term] of Object.entries(TERMS)) {
+    assert.ok(term.expansion?.trim(), `${termId} has no expansion`);
+    assert.ok(term.plain?.trim(), `${termId} has no plain-language definition`);
   }
 });
 

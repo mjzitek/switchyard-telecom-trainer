@@ -1,5 +1,5 @@
 import "./styles.css";
-import { LAYERS, MISCONCEPTIONS, ROUTES, SOURCES, STATIONS } from "./curriculum.js";
+import { LAYERS, MISCONCEPTIONS, ROUTES, SOURCES, STATIONS, TERMS } from "./curriculum.js";
 import { createSimulation } from "./scene.js";
 
 const app = document.querySelector("#app");
@@ -13,6 +13,7 @@ app.innerHTML = `
       </div>
       <nav class="top-actions" aria-label="Trainer information">
         <button class="button button-quiet" id="tour-button">Start guided tour</button>
+        <button class="button button-quiet" id="glossary-button">Glossary</button>
         <button class="button button-quiet" id="accuracy-button">Accuracy & sources</button>
       </nav>
     </header>
@@ -43,6 +44,10 @@ app.innerHTML = `
           <h2 id="lesson-name"></h2>
           <p class="lesson-kicker" id="lesson-kicker"></p>
           <div class="lesson-progress"><span id="lesson-progress"></span></div>
+          <section class="lesson-terms">
+            <div class="section-heading"><h3>Words to know first</h3><button id="lesson-glossary-button">Open full glossary</button></div>
+            <div id="lesson-terms"></div>
+          </section>
           <p class="lesson-summary" id="lesson-summary"></p>
           <p class="lesson-body" id="lesson-body"></p>
 
@@ -54,8 +59,8 @@ app.innerHTML = `
           <section class="layer-readout">
             <h3>What is moving here?</h3>
             <dl>
-              <div><dt><i style="--dot:${LAYERS.signal.color}"></i>SIP</dt><dd id="lesson-signal"></dd></div>
-              <div><dt><i style="--dot:${LAYERS.media.color}"></i>Media</dt><dd id="lesson-media"></dd></div>
+              <div><dt><i style="--dot:${LAYERS.signal.color}"></i>Call setup</dt><dd id="lesson-signal"></dd></div>
+              <div><dt><i style="--dot:${LAYERS.media.color}"></i>Live audio</dt><dd id="lesson-media"></dd></div>
               <div><dt><i style="--dot:${LAYERS.control.color}"></i>Product state</dt><dd id="lesson-state"></dd></div>
             </dl>
           </section>
@@ -94,7 +99,7 @@ app.innerHTML = `
         <label><input type="checkbox" id="follow" /> Follow flow</label>
         <label><input type="checkbox" id="labels" checked /> Labels</label>
       </div>
-      <div class="flow-key"><span><i style="--dot:${LAYERS.signal.color}"></i>SIP</span><span><i style="--dot:${LAYERS.media.color}"></i>RTP</span><span><i style="--dot:${LAYERS.control.color}"></i>EVENT</span></div>
+      <div class="flow-key"><span><i style="--dot:${LAYERS.signal.color}"></i>CALL SETUP</span><span><i style="--dot:${LAYERS.media.color}"></i>LIVE AUDIO</span><span><i style="--dot:${LAYERS.control.color}"></i>APP EVENT</span></div>
     </section>
   </main>
 
@@ -106,8 +111,18 @@ app.innerHTML = `
       <h3>Misconceptions the model corrects</h3>
       <div class="myth-list">${MISCONCEPTIONS.map(([myth, fact]) => `<div><span>${myth}</span><p>${fact}</p></div>`).join("")}</div>
       <h3>Primary and official references</h3>
-      <div class="all-sources">${SOURCES.map((source) => `<a href="${source.url}" target="_blank" rel="noreferrer"><span>${source.org}</span>${source.title}<b>↗</b></a>`).join("")}</div>
+      <div class="all-sources">${SOURCES.map((source) => `<a href="${source.url}" target="_blank" rel="noreferrer"><span>${TERMS[source.org] ? `${source.org}: ${TERMS[source.org].expansion}` : source.org}</span>${source.title}<b>↗</b></a>`).join("")}</div>
       <p class="legal-note">Regulatory material is US-oriented and changes over time. Verify current carrier requirements, jurisdiction, customer use case, and specialist advice before launch.</p>
+    </div>
+  </dialog>
+
+  <dialog id="glossary-dialog" class="info-dialog glossary-dialog">
+    <div class="dialog-head"><div><span>PLAIN-LANGUAGE REFERENCE</span><h2>Telecom glossary</h2></div><button class="icon-button" data-close="glossary-dialog" aria-label="Close glossary">×</button></div>
+    <div class="dialog-content">
+      <p class="dialog-lead">Every shortened term used in the trainer is translated here. Search by acronym, full name, or what it does.</p>
+      <label class="glossary-search"><span>Find a term</span><input id="glossary-search" type="search" placeholder="Try “audio”, “SBC”, or “call record”" autocomplete="off" /></label>
+      <div class="glossary-list" id="glossary-list"></div>
+      <p class="glossary-empty" id="glossary-empty" hidden>No matching term. Try a broader word.</p>
     </div>
   </dialog>
 
@@ -115,7 +130,7 @@ app.innerHTML = `
     <div class="tour-icon" aria-hidden="true">☎</div>
     <span class="tour-label">WELCOME TO SWITCHYARD</span>
     <h2>Follow one support call through your future SaaS.</h2>
-    <p>The orange token is signaling. Teal is audio. Purple is product data. They cooperate, but they are not the same thing.</p>
+    <p>The orange token is call setup messaging. Teal is live audio. Purple is product data. Each lesson defines its technical terms before using them.</p>
     <div class="tour-actions"><button class="button button-quiet" data-close="tour-dialog">Explore myself</button><button class="button button-primary" id="begin-tour">Begin at the number yard</button></div>
   </dialog>
 `;
@@ -131,6 +146,37 @@ const state = {
 const byId = (id) => document.getElementById(id);
 const sourceById = new Map(SOURCES.map((source) => [source.id, source]));
 const stationById = new Map(STATIONS.map((station) => [station.id, station]));
+
+function termCard(termId, compact = false) {
+  const term = TERMS[termId];
+  if (!term) return "";
+  return `<article class="term-card${compact ? " is-compact" : ""}">
+    <div><abbr title="${term.expansion}">${termId}</abbr><strong>${term.expansion}</strong></div>
+    <p>${term.plain}</p>
+  </article>`;
+}
+
+function renderGlossary(query = "") {
+  const normalized = query.trim().toLowerCase();
+  const matches = Object.entries(TERMS)
+    .filter(([termId, term]) => `${termId} ${term.expansion} ${term.plain}`.toLowerCase().includes(normalized))
+    .sort(([left], [right]) => {
+      const leftNormalized = left.toLowerCase();
+      const rightNormalized = right.toLowerCase();
+      const leftRank = leftNormalized === normalized ? 2 : leftNormalized.startsWith(normalized) ? 1 : 0;
+      const rightRank = rightNormalized === normalized ? 2 : rightNormalized.startsWith(normalized) ? 1 : 0;
+      return rightRank - leftRank || left.localeCompare(right, undefined, { sensitivity: "base" });
+    });
+  byId("glossary-list").innerHTML = matches.map(([termId]) => termCard(termId)).join("");
+  byId("glossary-empty").hidden = matches.length > 0;
+}
+
+function openGlossary() {
+  const dialog = byId("glossary-dialog");
+  renderGlossary(byId("glossary-search").value);
+  dialog.showModal();
+  setTimeout(() => byId("glossary-search").focus(), 0);
+}
 
 function stationIndex(id) {
   return STATIONS.findIndex((station) => station.id === id);
@@ -148,6 +194,11 @@ function renderStation(id, focus = true) {
   byId("lesson-kicker").textContent = station.kicker;
   byId("lesson-progress").style.width = `${(station.number / STATIONS.length) * 100}%`;
   byId("lesson-progress").style.background = layer.color;
+  const primaryTerms = station.terms.slice(0, 3);
+  const additionalTerms = station.terms.slice(3);
+  byId("lesson-terms").innerHTML = primaryTerms.map((termId) => termCard(termId, true)).join("") + (additionalTerms.length
+    ? `<details class="more-terms"><summary>${additionalTerms.length} more terms used in this lesson</summary><div>${additionalTerms.map((termId) => termCard(termId, true)).join("")}</div></details>`
+    : "");
   byId("lesson-summary").textContent = station.summary;
   byId("lesson-body").textContent = station.lesson;
   byId("lesson-build").textContent = station.build;
@@ -159,7 +210,9 @@ function renderStation(id, focus = true) {
   byId("station-status").textContent = `${station.number} / ${STATIONS.length}`;
   byId("lesson-sources").innerHTML = station.sources.map((id) => {
     const source = sourceById.get(id);
-    return `<a href="${source.url}" target="_blank" rel="noreferrer"><span>${source.org}</span>${source.title} ↗</a>`;
+    const organization = TERMS[source.org];
+    const organizationLabel = organization ? `${source.org}: ${organization.expansion}` : source.org;
+    return `<a href="${source.url}" target="_blank" rel="noreferrer"><span title="${organizationLabel}">${organizationLabel}</span>${source.title} ↗</a>`;
   }).join("");
   document.querySelectorAll(".route-chip").forEach((chip) => chip.classList.toggle("is-current", chip.dataset.station === id));
   simulation?.selectStation(id, focus);
@@ -238,6 +291,9 @@ byId("scenario").addEventListener("change", (event) => {
 
 document.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", () => byId(button.dataset.close).close()));
 byId("accuracy-button").addEventListener("click", () => byId("accuracy-dialog").showModal());
+byId("glossary-button").addEventListener("click", openGlossary);
+byId("lesson-glossary-button").addEventListener("click", openGlossary);
+byId("glossary-search").addEventListener("input", (event) => renderGlossary(event.target.value));
 byId("tour-button").addEventListener("click", () => byId("tour-dialog").showModal());
 byId("begin-tour").addEventListener("click", () => {
   byId("tour-dialog").close();

@@ -23,23 +23,23 @@ Real-time events
 
 ## Four boundaries to keep separate
 
-### 1. Carrier, numbering, and PSTN
+### 1. Carrier, numbering, and the public phone network (PSTN)
 
-An E.164 telephone number is a globally formatted routing address. In the North American Numbering Plan, a DID can be assigned or ported to a customer and routed by a carrier into your platform. It is not a physical line, SIP login, or capacity allocation. Number inventory, tenant ownership, porting state, emergency address, inbound routing, outbound caller-ID authority, and concurrent-call limits must remain explicit data.
+An E.164 telephone number follows the international telephone-numbering standard. In the North American Numbering Plan, a Direct Inward Dialing (DID) number can be assigned or ported to a customer and routed by a carrier into your platform. It is not a physical line, SIP login, or capacity allocation. Number inventory, tenant ownership, porting state, emergency address, inbound routing, outbound caller-ID authority, and concurrent-call limits must remain explicit data.
 
 Your service normally buys origination (receiving calls) and termination (placing calls) from one or more carriers. Carrier interconnection remains a regulated service boundary even when the underlying transport is IP.
 
-### 2. SIP signaling and SDP
+### 2. Call setup (SIP) and the media description (SDP)
 
-SIP creates, changes, and ends sessions. A typical successful call setup is `INVITE`, provisional responses such as `100 Trying` and `180 Ringing`, a `200 OK`, and `ACK`; `BYE` ends a dialog. Carrier trunks are often authenticated by source IP rather than endpoint-style `REGISTER`.
+Session Initiation Protocol (SIP) creates, changes, and ends sessions. A typical successful call setup is `INVITE`, provisional responses such as `100 Trying` and `180 Ringing`, a `200 OK`, and `ACK`; `BYE` ends a dialog. Carrier trunks are often authenticated by source Internet Protocol (IP) address rather than endpoint-style `REGISTER`.
 
-SDP travels within signaling messages and offers or answers media parameters: address, port, direction, codecs, and related attributes. Codec negotiation selects a compatible format. Transcoding is a separate real-time conversion step that consumes compute and can reduce quality.
+Session Description Protocol (SDP) travels within signaling messages and offers or answers media parameters: address, port, direction, codecs, and related attributes. Codec negotiation selects a compatible audio format. Transcoding is a separate real-time conversion step that consumes compute and can reduce quality.
 
 An SBC marks a trust boundary. It can enforce peer authentication or ACLs, rate limits, topology hiding, normalization, NAT behavior, media anchoring, and fraud policy. SIP over TLS protects a signaling hop. It does not encrypt ordinary RTP.
 
-### 3. RTP, SRTP, and WebRTC media
+### 3. Live audio (RTP/SRTP) and browser calling (WebRTC)
 
-RTP carries time-sensitive audio packets independently of SIP. RTCP reports reception and timing information such as loss and jitter. NAT mistakes, incorrect SDP addresses, blocked UDP, high latency, packet loss, and jitter can produce one-way or degraded audio while the SIP dialog remains healthy.
+Real-time Transport Protocol (RTP) carries time-sensitive audio packets independently of SIP. RTP Control Protocol (RTCP) reports reception and timing information such as loss and jitter. Network Address Translation (NAT) mistakes, incorrect SDP addresses, blocked User Datagram Protocol (UDP), high latency, packet loss, and jitter can produce one-way or degraded audio while the SIP dialog remains healthy.
 
 SRTP protects RTP content. Browser agents generally use WebRTC: application signaling over HTTPS, microphone permission, ICE path discovery, and DTLS-SRTP media. STUN helps discover usable network candidates. TURN relays traffic when direct connectivity fails. A TURN relay and an SBC have different jobs.
 

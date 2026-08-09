@@ -28,6 +28,7 @@ npm run build
 ## Trainer controls
 
 - Select any building or numbered label to open its lesson.
+- Read each lesson's “Words to know first” cards before the lesson body, or search the always-available Glossary.
 - Pause/resume the animated flow, advance one step, or change speed.
 - Switch among an inbound support call, a no-audio investigation, and a launch-readiness path.
 - Toggle follow mode and station labels on larger screens.
