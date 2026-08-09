@@ -1,0 +1,16 @@
+{
+  "name": "switchyard-telecom-trainer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 41739",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 41740",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "three": "latest",
+    "vite": "latest"
+  }
+}
